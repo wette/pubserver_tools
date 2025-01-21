@@ -30,6 +30,7 @@ user     =           input("HSBI Username: ")
 password = getpass.getpass("HSBI Password: ")
 
 
+#waits for the HTML Document to be loaded by checking the existence of an object
 def waitForElementToBeLoaded(id : str = None, name : str = None, delay: int = 1):
     by = By.ID
     value = id
@@ -42,6 +43,7 @@ def waitForElementToBeLoaded(id : str = None, name : str = None, delay: int = 1)
     time.sleep(delay)
 
 
+#emulates keyboard input to an html element like a textbox
 def typeInValue(id : str = None, name : str = None, text : str = None):
     by = By.ID
     value = id
@@ -53,17 +55,20 @@ def typeInValue(id : str = None, name : str = None, text : str = None):
     input_name.send_keys(text)
 
 
+#hardcodes a value into a html form element. to be used whenever typeInValue does not work due to javascript cross-checks on the webpage
 def setValue(id : str = None, text : str = None):
     driver.execute_script(f'document.getElementById({id}).value = "{text}"')
 
-
+#workaround for the non-working click method of selenium (broken for safari on macos)
 def click(id: str = None):
     element = driver.find_element(by=By.ID, value=id)
     driver.execute_script("arguments[0].click();", element)
 
 
+
 #
 #   PARSE DATA FROM DPMA
+#   go to the web search of the DPMA and search for the patents in question
 #
 
 
@@ -86,8 +91,13 @@ submit_button.submit()
 
 
 
-#wait for values to be submited
+#wait for values to be submited and new page to be loaded
 waitForElementToBeLoaded(id='blaetter_aktuelle_seite')
+
+#
+#   tell the webpage to show additional information in the results table by clicking some boxes
+#   and submitting a form
+#
 
 #configure values
 click("a_trefferliste_einblenden")
@@ -98,8 +108,15 @@ button = driver.find_element(by=By.ID, value="blaetter_aktuelle_seite")
 button.submit()
 
 
-#wait for page to reload
+#wait for values to be submited and new page to be loaded
 waitForElementToBeLoaded(id="trefferliste", delay=5)
+
+
+
+
+#
+#  now the search results are in, we can parse the html for the actual data
+#
 
 #parse data from table
 patents = []
@@ -123,6 +140,9 @@ print(patents)
 # fill in data into pubserver
 #
 
+#
+#  provide login data to the HSBI server
+#
 driver.get(HSBI_LOGIN_URL)
 waitForElementToBeLoaded(name="loginButton2", delay=1)
 
@@ -139,6 +159,14 @@ submit_button.submit()
 time.sleep(5)
 
 
+
+
+
+
+#
+#  iterate through the found patents and add them one-by-one into the HSBI Publication Server
+#
+
 for patent in patents:
     #click the add-button
     driver.get(HSBI_PATENT_ADD_URL)
@@ -146,6 +174,7 @@ for patent in patents:
     #wait for page to be loaded
     waitForElementToBeLoaded(name="finalSubmit", delay=1)
 
+    #input patent data
     title = driver.find_element(by=By.ID, value="id_title")
     year = driver.find_element(by=By.ID, value="id_year")
     date = driver.find_element(by=By.ID, value="id_publication_date")
