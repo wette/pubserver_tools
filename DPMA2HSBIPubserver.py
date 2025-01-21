@@ -57,7 +57,7 @@ def typeInValue(id : str = None, name : str = None, text : str = None):
 
 #hardcodes a value into a html form element. to be used whenever typeInValue does not work due to javascript cross-checks on the webpage
 def setValue(id : str = None, text : str = None):
-    driver.execute_script(f'document.getElementById({id}).value = "{text}"')
+    driver.execute_script(f'document.getElementById("{id}").value = "{text}"')
 
 #workaround for the non-working click method of selenium (broken for safari on macos)
 def click(id: str = None):
@@ -132,7 +132,13 @@ for row in table.find_elements(by=By.XPATH, value=".//tr"):
         patents.append( [no, date, ipc, title] ) 
 
 print("Found Patents:")
-print(patents)
+for p in patents:
+    print(f"{p[0]} at {p[1]}: {p[2]} ({p[3]})")
+
+
+y = input("Do you want to publish those Patents on the HSBI Server? (y/n)")
+if y != "y":
+    quit()
 
 
 
